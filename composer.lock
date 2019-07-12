@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "fd22580f7d5c0341eb0d2607392906e0",
+    "content-hash": "445bc52d7ff7c1a00a179c9f8beee002",
     "packages": [
         {
             "name": "civicrm/civicrm-cxn-rpc",
@@ -2988,16 +2988,16 @@
         },
         {
             "name": "openlss/lib-array2xml",
-            "version": "0.5.1",
+            "version": "1.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nullivex/lib-array2xml.git",
-                "reference": "c8b5998a342d7861f2e921403f44e0a2f3ef2be0"
+                "reference": "a91f18a8dfc69ffabe5f9b068bc39bb202c81d90"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nullivex/lib-array2xml/zipball/c8b5998a342d7861f2e921403f44e0a2f3ef2be0",
-                "reference": "c8b5998a342d7861f2e921403f44e0a2f3ef2be0",
+                "url": "https://api.github.com/repos/nullivex/lib-array2xml/zipball/a91f18a8dfc69ffabe5f9b068bc39bb202c81d90",
+                "reference": "a91f18a8dfc69ffabe5f9b068bc39bb202c81d90",
                 "shasum": ""
             },
             "require": {
@@ -3016,24 +3016,24 @@
             "authors": [
                 {
                     "name": "Bryan Tong",
-                    "email": "contact@nullivex.com",
-                    "homepage": "http://bryantong.com"
+                    "email": "bryan@nullivex.com",
+                    "homepage": "https://www.nullivex.com"
                 },
                 {
                     "name": "Tony Butler",
                     "email": "spudz76@gmail.com",
-                    "homepage": "http://openlss.org"
+                    "homepage": "https://www.nullivex.com"
                 }
             ],
             "description": "Array2XML conversion library credit to lalit.org",
-            "homepage": "http://openlss.org",
+            "homepage": "https://www.nullivex.com",
             "keywords": [
                 "array",
                 "array conversion",
                 "xml",
                 "xml conversion"
             ],
-            "time": "2016-11-10T19:10:18+00:00"
+            "time": "2019-03-29T20:06:56+00:00"
         },
         {
             "name": "phpdocumentor/reflection-common",
@@ -3499,16 +3499,16 @@
         },
         {
             "name": "vimeo/psalm",
-            "version": "3.4.0",
+            "version": "3.4.9",
             "source": {
                 "type": "git",
                 "url": "https://github.com/vimeo/psalm.git",
-                "reference": "99e6cd819f829babf50c5852d6f62d40b1fec9d9"
+                "reference": "aa0efcf026e353ce2a4b66c4d3d81caebbf0966a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/vimeo/psalm/zipball/99e6cd819f829babf50c5852d6f62d40b1fec9d9",
-                "reference": "99e6cd819f829babf50c5852d6f62d40b1fec9d9",
+                "url": "https://api.github.com/repos/vimeo/psalm/zipball/aa0efcf026e353ce2a4b66c4d3d81caebbf0966a",
+                "reference": "aa0efcf026e353ce2a4b66c4d3d81caebbf0966a",
                 "shasum": ""
             },
             "require": {
@@ -3516,11 +3516,11 @@
                 "amphp/byte-stream": "^1.5",
                 "composer/xdebug-handler": "^1.1",
                 "felixfbecker/advanced-json-rpc": "^3.0.3",
-                "felixfbecker/language-server-protocol": "^1.2",
+                "felixfbecker/language-server-protocol": "^1.4",
                 "netresearch/jsonmapper": "^1.0",
-                "nikic/php-parser": "^4.0.2 || ^4.1",
+                "nikic/php-parser": "^4.2",
                 "ocramius/package-versions": "^1.2",
-                "openlss/lib-array2xml": "^0.0.10||^0.5.1",
+                "openlss/lib-array2xml": "^1.0",
                 "php": "^7.1",
                 "sebastian/diff": "^3.0",
                 "symfony/console": "^3.3||^4.0",
@@ -3532,10 +3532,13 @@
             },
             "require-dev": {
                 "bamarni/composer-bin-plugin": "^1.2",
+                "friendsofphp/php-cs-fixer": "^2.15",
                 "phpmyadmin/sql-parser": "^5.0",
                 "phpunit/phpunit": "^7.5 || ^8.0",
                 "psalm/plugin-phpunit": "^0.6",
-                "squizlabs/php_codesniffer": "3.4.0"
+                "slevomat/coding-standard": "^5.0",
+                "squizlabs/php_codesniffer": "3.4.0",
+                "symfony/process": "^4.3"
             },
             "suggest": {
                 "ext-igbinary": "^2.0.5"
@@ -3544,7 +3547,8 @@
                 "psalm",
                 "psalter",
                 "psalm-language-server",
-                "psalm-plugin"
+                "psalm-plugin",
+                "psalm-refactor"
             ],
             "type": "library",
             "extra": {
@@ -3578,7 +3582,7 @@
                 "inspection",
                 "php"
             ],
-            "time": "2019-06-03T16:30:20+00:00"
+            "time": "2019-07-09T11:39:03+00:00"
         },
         {
             "name": "webmozart/assert",
