@@ -264,6 +264,48 @@ class CRM_Export_BAO_ExportProcessor {
   protected $outputSpecification = [];
 
   /**
+   * @var string
+   */
+  protected $componentTable = '';
+
+  /**
+   * @return string
+   */
+  public function getComponentTable() {
+    return $this->componentTable;
+  }
+
+  /**
+   * Set the component table (if any).
+   *
+   * @param string $componentTable
+   */
+  public function setComponentTable($componentTable) {
+    $this->componentTable = $componentTable;
+  }
+
+  /**
+   * Clause from component search.
+   *
+   * @var string
+   */
+  protected $componentClause = '';
+
+  /**
+   * @return string
+   */
+  public function getComponentClause() {
+    return $this->componentClause;
+  }
+
+  /**
+   * @param string $componentClause
+   */
+  public function setComponentClause($componentClause) {
+    $this->componentClause = $componentClause;
+  }
+
+  /**
    * Name of a temporary table created to hold the results.
    *
    * Current decision making on when to create a temp table is kinda bad so this might change
@@ -310,6 +352,7 @@ class CRM_Export_BAO_ExportProcessor {
     $this->setReturnProperties($this->determineReturnProperties());
     $this->setAdditionalFieldsForSameAddressMerge();
     $this->setAdditionalFieldsForPostalExport();
+    $this->setHouseholdMergeReturnProperties();
   }
 
   /**
@@ -645,10 +688,11 @@ class CRM_Export_BAO_ExportProcessor {
   /**
    * @param $params
    * @param $order
-   * @param $returnProperties
+   *
    * @return array
    */
-  public function runQuery($params, $order, $returnProperties) {
+  public function runQuery($params, $order) {
+    $returnProperties = $this->getReturnProperties();
     $addressWhere = '';
     $params = array_merge($params, $this->getWhereParams());
     if ($this->isPostalableOnly) {
@@ -676,7 +720,28 @@ class CRM_Export_BAO_ExportProcessor {
     $query->_sort = $order;
     list($select, $from, $where, $having) = $query->query();
     $this->setQueryFields($query->_fields);
-    return [$query, $select, $from, $where . $addressWhere, $having];
+    $whereClauses = ['trash_clause' => "contact_a.is_deleted != 1"];
+    if ($this->getRequestedFields() && ($this->getComponentTable())) {
+      $from .= " INNER JOIN " . $this->getComponentTable() . " ctTable ON ctTable.contact_id = contact_a.id ";
+    }
+    elseif ($this->getComponentClause()) {
+      $whereClauses[] = $this->getComponentClause();
+    }
+
+    // CRM-13982 - check if is deleted
+    foreach ($params as $value) {
+      if ($value[0] == 'contact_is_deleted') {
+        unset($whereClauses['trash_clause']);
+      }
+    }
+
+    if (empty($where)) {
+      $where = "WHERE " . implode(' AND ', $whereClauses);
+    }
+    else {
+      $where .= " AND " . implode(' AND ', $whereClauses);
+    }
+    return [$query, "$select $from $where $having"];
   }
 
   /**
@@ -795,11 +860,12 @@ class CRM_Export_BAO_ExportProcessor {
    * @param $metadata
    * @param $paymentDetails
    * @param $addPaymentHeader
-   * @param $paymentTableId
+   * @param \CRM_Export_BAO_ExportProcessor $processor
    *
    * @return array|bool
    */
-  public function buildRow($query, $iterationDAO, $outputColumns, $metadata, $paymentDetails, $addPaymentHeader, $paymentTableId) {
+  public function buildRow($query, $iterationDAO, $outputColumns, $metadata, $paymentDetails, $addPaymentHeader, $processor) {
+    $paymentTableId = $processor->getPaymentTableID();
     if ($this->isHouseholdToSkip($iterationDAO->contact_id)) {
       return FALSE;
     }
@@ -1217,13 +1283,14 @@ class CRM_Export_BAO_ExportProcessor {
    *
    * If we are using household merge we need to add these to the relationship properties to
    * be retrieved.
-   *
-   * @param $returnProperties
    */
-  public function setHouseholdMergeReturnProperties($returnProperties) {
-    $returnProperties = array_diff_key($returnProperties, array_fill_keys(['location_type', 'im_provider'], 1));
-    foreach ($this->getHouseholdRelationshipTypes() as $householdRelationshipType) {
-      $this->relationshipReturnProperties[$householdRelationshipType] = $returnProperties;
+  public function setHouseholdMergeReturnProperties() {
+    if ($this->isMergeSameHousehold()) {
+      $returnProperties = $this->getReturnProperties();
+      $returnProperties = array_diff_key($returnProperties, array_fill_keys(['location_type', 'im_provider'], 1));
+      foreach ($this->getHouseholdRelationshipTypes() as $householdRelationshipType) {
+        $this->relationshipReturnProperties[$householdRelationshipType] = $returnProperties;
+      }
     }
   }
 
@@ -1553,7 +1620,7 @@ class CRM_Export_BAO_ExportProcessor {
       $returnProperties = [];
       foreach ($this->getRequestedFields() as $key => $value) {
         $fieldName = $value['name'];
-        $locationName = CRM_Core_PseudoConstant::getName('CRM_Core_BAO_Address', 'location_type_id', $value['location_type_id']);
+        $locationName = !empty($value['location_type_id']) ? CRM_Core_PseudoConstant::getName('CRM_Core_BAO_Address', 'location_type_id', $value['location_type_id']) : NULL;
         $relationshipTypeKey = !empty($value['relationship_type_id']) ? $value['relationship_type_id'] . '_' . $value['relationship_direction'] : NULL;
         if (!$fieldName || $this->isHouseholdMergeRelationshipTypeKey($relationshipTypeKey)) {
           continue;
@@ -1607,6 +1674,310 @@ class CRM_Export_BAO_ExportProcessor {
 
     }
     return $returnProperties;
+  }
+
+  /**
+   * @param int $contactId
+   * @param array $exportParams
+   *
+   * @return array
+   */
+  public function replaceMergeTokens($contactId, $exportParams) {
+    $greetings = [];
+    $contact = NULL;
+
+    $greetingFields = [
+      'postal_greeting',
+      'addressee',
+    ];
+    foreach ($greetingFields as $greeting) {
+      if (!empty($exportParams[$greeting])) {
+        $greetingLabel = $exportParams[$greeting];
+        if (empty($contact)) {
+          $values = [
+            'id' => $contactId,
+            'version' => 3,
+          ];
+          $contact = civicrm_api('contact', 'get', $values);
+
+          if (!empty($contact['is_error'])) {
+            return $greetings;
+          }
+          $contact = $contact['values'][$contact['id']];
+        }
+
+        $tokens = ['contact' => $greetingLabel];
+        $greetings[$greeting] = CRM_Utils_Token::replaceContactTokens($greetingLabel, $contact, NULL, $tokens);
+      }
+    }
+    return $greetings;
+  }
+
+  /**
+   * Build array for merging same addresses.
+   *
+   * @param $sql
+   * @param array $exportParams
+   * @param bool $sharedAddress
+   *
+   * @return array
+   */
+  public function buildMasterCopyArray($sql, $exportParams, $sharedAddress = FALSE) {
+    static $contactGreetingTokens = [];
+
+    $addresseeOptions = CRM_Core_OptionGroup::values('addressee');
+    $postalOptions = CRM_Core_OptionGroup::values('postal_greeting');
+
+    $merge = $parents = [];
+    $dao = CRM_Core_DAO::executeQuery($sql);
+
+    while ($dao->fetch()) {
+      $masterID = $dao->master_id;
+      $copyID = $dao->copy_id;
+      $masterPostalGreeting = $dao->master_postal_greeting;
+      $masterAddressee = $dao->master_addressee;
+      $copyAddressee = $dao->copy_addressee;
+
+      if (!$sharedAddress) {
+        if (!isset($contactGreetingTokens[$dao->master_contact_id])) {
+          $contactGreetingTokens[$dao->master_contact_id] = $this->replaceMergeTokens($dao->master_contact_id, $exportParams);
+        }
+        $masterPostalGreeting = CRM_Utils_Array::value('postal_greeting',
+          $contactGreetingTokens[$dao->master_contact_id], $dao->master_postal_greeting
+        );
+        $masterAddressee = CRM_Utils_Array::value('addressee',
+          $contactGreetingTokens[$dao->master_contact_id], $dao->master_addressee
+        );
+
+        if (!isset($contactGreetingTokens[$dao->copy_contact_id])) {
+          $contactGreetingTokens[$dao->copy_contact_id] = $this->replaceMergeTokens($dao->copy_contact_id, $exportParams);
+        }
+        $copyPostalGreeting = CRM_Utils_Array::value('postal_greeting',
+          $contactGreetingTokens[$dao->copy_contact_id], $dao->copy_postal_greeting
+        );
+        $copyAddressee = CRM_Utils_Array::value('addressee',
+          $contactGreetingTokens[$dao->copy_contact_id], $dao->copy_addressee
+        );
+      }
+
+      if (!isset($merge[$masterID])) {
+        // check if this is an intermediate child
+        // this happens if there are 3 or more matches a,b, c
+        // the above query will return a, b / a, c / b, c
+        // we might be doing a bit more work, but for now its ok, unless someone
+        // knows how to fix the query above
+        if (isset($parents[$masterID])) {
+          $masterID = $parents[$masterID];
+        }
+        else {
+          $merge[$masterID] = [
+            'addressee' => $masterAddressee,
+            'copy' => [],
+            'postalGreeting' => $masterPostalGreeting,
+          ];
+          $merge[$masterID]['emailGreeting'] = &$merge[$masterID]['postalGreeting'];
+        }
+      }
+      $parents[$copyID] = $masterID;
+
+      if (!$sharedAddress && !array_key_exists($copyID, $merge[$masterID]['copy'])) {
+
+        if (!empty($exportParams['postal_greeting_other']) &&
+          count($merge[$masterID]['copy']) >= 1
+        ) {
+          // use static greetings specified if no of contacts > 2
+          $merge[$masterID]['postalGreeting'] = $exportParams['postal_greeting_other'];
+        }
+        elseif ($copyPostalGreeting) {
+          $this->trimNonTokensFromAddressString($copyPostalGreeting,
+            $postalOptions[$dao->copy_postal_greeting_id],
+            $exportParams
+          );
+          $merge[$masterID]['postalGreeting'] = "{$merge[$masterID]['postalGreeting']}, {$copyPostalGreeting}";
+          // if there happens to be a duplicate, remove it
+          $merge[$masterID]['postalGreeting'] = str_replace(" {$copyPostalGreeting},", "", $merge[$masterID]['postalGreeting']);
+        }
+
+        if (!empty($exportParams['addressee_other']) &&
+          count($merge[$masterID]['copy']) >= 1
+        ) {
+          // use static greetings specified if no of contacts > 2
+          $merge[$masterID]['addressee'] = $exportParams['addressee_other'];
+        }
+        elseif ($copyAddressee) {
+          $this->trimNonTokensFromAddressString($copyAddressee,
+            $addresseeOptions[$dao->copy_addressee_id],
+            $exportParams, 'addressee'
+          );
+          $merge[$masterID]['addressee'] = "{$merge[$masterID]['addressee']}, " . trim($copyAddressee);
+        }
+      }
+      $merge[$masterID]['copy'][$copyID] = $copyAddressee;
+    }
+
+    return $merge;
+  }
+
+  /**
+   * Merge contacts with the same address.
+   *
+   * @param $sqlColumns
+   * @param array $exportParams
+   */
+  public function mergeSameAddress(&$sqlColumns, $exportParams) {
+    $greetingOptions = CRM_Export_Form_Select::getGreetingOptions();
+
+    if (!empty($greetingOptions)) {
+      // Greeting options is keyed by 'postal_greeting' or 'addressee'.
+      foreach ($greetingOptions as $key => $value) {
+        if ($option = CRM_Utils_Array::value($key, $exportParams)) {
+          if ($greetingOptions[$key][$option] == ts('Other')) {
+            $exportParams[$key] = $exportParams["{$key}_other"];
+          }
+          elseif ($greetingOptions[$key][$option] == ts('List of names')) {
+            $exportParams[$key] = '';
+          }
+          else {
+            $exportParams[$key] = $greetingOptions[$key][$option];
+          }
+        }
+      }
+    }
+    $tableName = $this->getTemporaryTable();
+    // check if any records are present based on if they have used shared address feature,
+    // and not based on if city / state .. matches.
+    $sql = "
+SELECT    r1.id                 as copy_id,
+          r1.civicrm_primary_id as copy_contact_id,
+          r1.addressee          as copy_addressee,
+          r1.addressee_id       as copy_addressee_id,
+          r1.postal_greeting    as copy_postal_greeting,
+          r1.postal_greeting_id as copy_postal_greeting_id,
+          r2.id                 as master_id,
+          r2.civicrm_primary_id as master_contact_id,
+          r2.postal_greeting    as master_postal_greeting,
+          r2.postal_greeting_id as master_postal_greeting_id,
+          r2.addressee          as master_addressee,
+          r2.addressee_id       as master_addressee_id
+FROM      $tableName r1
+INNER JOIN civicrm_address adr ON r1.master_id   = adr.id
+INNER JOIN $tableName      r2  ON adr.contact_id = r2.civicrm_primary_id
+ORDER BY  r1.id";
+    $linkedMerge = $this->buildMasterCopyArray($sql, $exportParams, TRUE);
+
+    // find all the records that have the same street address BUT not in a household
+    // require match on city and state as well
+    $sql = "
+SELECT    r1.id                 as master_id,
+          r1.civicrm_primary_id as master_contact_id,
+          r1.postal_greeting    as master_postal_greeting,
+          r1.postal_greeting_id as master_postal_greeting_id,
+          r1.addressee          as master_addressee,
+          r1.addressee_id       as master_addressee_id,
+          r2.id                 as copy_id,
+          r2.civicrm_primary_id as copy_contact_id,
+          r2.postal_greeting    as copy_postal_greeting,
+          r2.postal_greeting_id as copy_postal_greeting_id,
+          r2.addressee          as copy_addressee,
+          r2.addressee_id       as copy_addressee_id
+FROM      $tableName r1
+LEFT JOIN $tableName r2 ON ( r1.street_address = r2.street_address AND
+               r1.city = r2.city AND
+               r1.state_province_id = r2.state_province_id )
+WHERE     ( r1.household_name IS NULL OR r1.household_name = '' )
+AND       ( r2.household_name IS NULL OR r2.household_name = '' )
+AND       ( r1.street_address != '' )
+AND       r2.id > r1.id
+ORDER BY  r1.id
+";
+    $merge = $this->buildMasterCopyArray($sql, $exportParams);
+
+    // unset ids from $merge already present in $linkedMerge
+    foreach ($linkedMerge as $masterID => $values) {
+      $keys = [$masterID];
+      $keys = array_merge($keys, array_keys($values['copy']));
+      foreach ($merge as $mid => $vals) {
+        if (in_array($mid, $keys)) {
+          unset($merge[$mid]);
+        }
+        else {
+          foreach ($values['copy'] as $copyId) {
+            if (in_array($copyId, $keys)) {
+              unset($merge[$mid]['copy'][$copyId]);
+            }
+          }
+        }
+      }
+    }
+    $merge = $merge + $linkedMerge;
+
+    foreach ($merge as $masterID => $values) {
+      $sql = "
+UPDATE $tableName
+SET    addressee = %1, postal_greeting = %2, email_greeting = %3
+WHERE  id = %4
+";
+      $params = [
+        1 => [$values['addressee'], 'String'],
+        2 => [$values['postalGreeting'], 'String'],
+        3 => [$values['emailGreeting'], 'String'],
+        4 => [$masterID, 'Integer'],
+      ];
+      CRM_Core_DAO::executeQuery($sql, $params);
+
+      // delete all copies
+      $deleteIDs = array_keys($values['copy']);
+      $deleteIDString = implode(',', $deleteIDs);
+      $sql = "
+DELETE FROM $tableName
+WHERE  id IN ( $deleteIDString )
+";
+      CRM_Core_DAO::executeQuery($sql);
+    }
+
+    // unset temporary columns that were added for postal mailing format
+    // @todo - this part is pretty close to ready to be removed....
+    if (!empty($exportParams['merge_same_address']['temp_columns'])) {
+      $unsetKeys = array_keys($sqlColumns);
+      foreach ($unsetKeys as $headerKey => $sqlColKey) {
+        if (array_key_exists($sqlColKey, $exportParams['merge_same_address']['temp_columns'])) {
+          unset($sqlColumns[$sqlColKey]);
+        }
+      }
+    }
+  }
+
+  /**
+   * The function unsets static part of the string, if token is the dynamic part.
+   *
+   * Example: 'Hello {contact.first_name}' => converted to => '{contact.first_name}'
+   * i.e 'Hello Alan' => converted to => 'Alan'
+   *
+   * @param string $parsedString
+   * @param string $defaultGreeting
+   * @param bool $addressMergeGreetings
+   * @param string $greetingType
+   *
+   * @return mixed
+   */
+  public function trimNonTokensFromAddressString(
+    &$parsedString, $defaultGreeting,
+    $addressMergeGreetings, $greetingType = 'postal_greeting'
+  ) {
+    if (!empty($addressMergeGreetings[$greetingType])) {
+      $greetingLabel = $addressMergeGreetings[$greetingType];
+    }
+    $greetingLabel = empty($greetingLabel) ? $defaultGreeting : $greetingLabel;
+
+    $stringsToBeReplaced = preg_replace('/(\{[a-zA-Z._ ]+\})/', ';;', $greetingLabel);
+    $stringsToBeReplaced = explode(';;', $stringsToBeReplaced);
+    foreach ($stringsToBeReplaced as $key => $string) {
+      // to keep one space
+      $stringsToBeReplaced[$key] = ltrim($string);
+    }
+    $parsedString = str_replace($stringsToBeReplaced, "", $parsedString);
+
+    return $parsedString;
   }
 
 }
