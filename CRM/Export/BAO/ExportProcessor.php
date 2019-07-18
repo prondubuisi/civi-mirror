@@ -94,6 +94,13 @@ class CRM_Export_BAO_ExportProcessor {
   protected $additionalFieldsForSameAddressMerge = [];
 
   /**
+   * Fields used for merging same contacts.
+   *
+   * @var array
+   */
+  protected $contactGreetingFields = [];
+
+  /**
    * Get additional non-visible fields for address merge purposes.
    *
    * @return array
@@ -330,6 +337,38 @@ class CRM_Export_BAO_ExportProcessor {
     $this->temporaryTable = $temporaryTable;
   }
 
+  protected $postalGreetingTemplate;
+
+  /**
+   * @return mixed
+   */
+  public function getPostalGreetingTemplate() {
+    return $this->postalGreetingTemplate;
+  }
+
+  /**
+   * @param mixed $postalGreetingTemplate
+   */
+  public function setPostalGreetingTemplate($postalGreetingTemplate) {
+    $this->postalGreetingTemplate = $postalGreetingTemplate;
+  }
+
+  /**
+   * @return mixed
+   */
+  public function getAddresseeGreetingTemplate() {
+    return $this->addresseeGreetingTemplate;
+  }
+
+  /**
+   * @param mixed $addresseeGreetingTemplate
+   */
+  public function setAddresseeGreetingTemplate($addresseeGreetingTemplate) {
+    $this->addresseeGreetingTemplate = $addresseeGreetingTemplate;
+  }
+
+  protected $addresseeGreetingTemplate;
+
   /**
    * CRM_Export_BAO_ExportProcessor constructor.
    *
@@ -339,8 +378,14 @@ class CRM_Export_BAO_ExportProcessor {
    * @param bool $isMergeSameHousehold
    * @param bool $isPostalableOnly
    * @param bool $isMergeSameAddress
+   * @param array $formValues
+   *   Values from the export options form on contact export. We currently support these keys
+   *   - postal_greeting
+   *   - postal_other
+   *   - addresee_greeting
+   *   - addressee_other
    */
-  public function __construct($exportMode, $requestedFields, $queryOperator, $isMergeSameHousehold = FALSE, $isPostalableOnly = FALSE, $isMergeSameAddress = FALSE) {
+  public function __construct($exportMode, $requestedFields, $queryOperator, $isMergeSameHousehold = FALSE, $isPostalableOnly = FALSE, $isMergeSameAddress = FALSE, $formValues = []) {
     $this->setExportMode($exportMode);
     $this->setQueryMode();
     $this->setQueryOperator($queryOperator);
@@ -353,6 +398,7 @@ class CRM_Export_BAO_ExportProcessor {
     $this->setAdditionalFieldsForSameAddressMerge();
     $this->setAdditionalFieldsForPostalExport();
     $this->setHouseholdMergeReturnProperties();
+    $this->setGreetingStringsForSameAddressMerge($formValues);
   }
 
   /**
@@ -1812,21 +1858,20 @@ class CRM_Export_BAO_ExportProcessor {
 
   /**
    * @param int $contactId
-   * @param array $exportParams
    *
    * @return array
    */
-  public function replaceMergeTokens($contactId, $exportParams) {
+  public function replaceMergeTokens($contactId) {
     $greetings = [];
     $contact = NULL;
 
     $greetingFields = [
-      'postal_greeting',
-      'addressee',
+      'postal_greeting' => $this->getPostalGreetingTemplate(),
+      'addressee' => $this->getAddresseeGreetingTemplate(),
     ];
-    foreach ($greetingFields as $greeting) {
-      if (!empty($exportParams[$greeting])) {
-        $greetingLabel = $exportParams[$greeting];
+    foreach ($greetingFields as $greeting => $greetingLabel) {
+      $tokens = CRM_Utils_Token::getTokens($greetingLabel);
+      if (!empty($tokens)) {
         if (empty($contact)) {
           $values = [
             'id' => $contactId,
@@ -1851,13 +1896,11 @@ class CRM_Export_BAO_ExportProcessor {
    * Build array for merging same addresses.
    *
    * @param $sql
-   * @param array $exportParams
    * @param bool $sharedAddress
    *
    * @return array
    */
-  public function buildMasterCopyArray($sql, $exportParams, $sharedAddress = FALSE) {
-    static $contactGreetingTokens = [];
+  public function buildMasterCopyArray($sql, $sharedAddress = FALSE) {
 
     $addresseeOptions = CRM_Core_OptionGroup::values('addressee');
     $postalOptions = CRM_Core_OptionGroup::values('postal_greeting');
@@ -1873,24 +1916,24 @@ class CRM_Export_BAO_ExportProcessor {
       $copyAddressee = $dao->copy_addressee;
 
       if (!$sharedAddress) {
-        if (!isset($contactGreetingTokens[$dao->master_contact_id])) {
-          $contactGreetingTokens[$dao->master_contact_id] = $this->replaceMergeTokens($dao->master_contact_id, $exportParams);
+        if (!isset($this->contactGreetingFields[$dao->master_contact_id])) {
+          $this->contactGreetingFields[$dao->master_contact_id] = $this->replaceMergeTokens($dao->master_contact_id);
         }
         $masterPostalGreeting = CRM_Utils_Array::value('postal_greeting',
-          $contactGreetingTokens[$dao->master_contact_id], $dao->master_postal_greeting
+          $this->contactGreetingFields[$dao->master_contact_id], $dao->master_postal_greeting
         );
         $masterAddressee = CRM_Utils_Array::value('addressee',
-          $contactGreetingTokens[$dao->master_contact_id], $dao->master_addressee
+          $this->contactGreetingFields[$dao->master_contact_id], $dao->master_addressee
         );
 
         if (!isset($contactGreetingTokens[$dao->copy_contact_id])) {
-          $contactGreetingTokens[$dao->copy_contact_id] = $this->replaceMergeTokens($dao->copy_contact_id, $exportParams);
+          $this->contactGreetingFields[$dao->copy_contact_id] = $this->replaceMergeTokens($dao->copy_contact_id);
         }
         $copyPostalGreeting = CRM_Utils_Array::value('postal_greeting',
-          $contactGreetingTokens[$dao->copy_contact_id], $dao->copy_postal_greeting
+          $this->contactGreetingFields[$dao->copy_contact_id], $dao->copy_postal_greeting
         );
         $copyAddressee = CRM_Utils_Array::value('addressee',
-          $contactGreetingTokens[$dao->copy_contact_id], $dao->copy_addressee
+          $this->contactGreetingFields[$dao->copy_contact_id], $dao->copy_addressee
         );
       }
 
@@ -1916,32 +1959,20 @@ class CRM_Export_BAO_ExportProcessor {
 
       if (!$sharedAddress && !array_key_exists($copyID, $merge[$masterID]['copy'])) {
 
-        if (!empty($exportParams['postal_greeting_other']) &&
-          count($merge[$masterID]['copy']) >= 1
-        ) {
-          // use static greetings specified if no of contacts > 2
-          $merge[$masterID]['postalGreeting'] = $exportParams['postal_greeting_other'];
-        }
-        elseif ($copyPostalGreeting) {
+        if ($copyPostalGreeting) {
           $this->trimNonTokensFromAddressString($copyPostalGreeting,
             $postalOptions[$dao->copy_postal_greeting_id],
-            $exportParams
+            $this->getPostalGreetingTemplate()
           );
           $merge[$masterID]['postalGreeting'] = "{$merge[$masterID]['postalGreeting']}, {$copyPostalGreeting}";
           // if there happens to be a duplicate, remove it
           $merge[$masterID]['postalGreeting'] = str_replace(" {$copyPostalGreeting},", "", $merge[$masterID]['postalGreeting']);
         }
 
-        if (!empty($exportParams['addressee_other']) &&
-          count($merge[$masterID]['copy']) >= 1
-        ) {
-          // use static greetings specified if no of contacts > 2
-          $merge[$masterID]['addressee'] = $exportParams['addressee_other'];
-        }
-        elseif ($copyAddressee) {
+        if ($copyAddressee) {
           $this->trimNonTokensFromAddressString($copyAddressee,
             $addresseeOptions[$dao->copy_addressee_id],
-            $exportParams, 'addressee'
+            $this->getAddresseeGreetingTemplate()
           );
           $merge[$masterID]['addressee'] = "{$merge[$masterID]['addressee']}, " . trim($copyAddressee);
         }
@@ -1959,24 +1990,7 @@ class CRM_Export_BAO_ExportProcessor {
    * @param array $exportParams
    */
   public function mergeSameAddress(&$sqlColumns, $exportParams) {
-    $greetingOptions = CRM_Export_Form_Select::getGreetingOptions();
 
-    if (!empty($greetingOptions)) {
-      // Greeting options is keyed by 'postal_greeting' or 'addressee'.
-      foreach ($greetingOptions as $key => $value) {
-        if ($option = CRM_Utils_Array::value($key, $exportParams)) {
-          if ($greetingOptions[$key][$option] == ts('Other')) {
-            $exportParams[$key] = $exportParams["{$key}_other"];
-          }
-          elseif ($greetingOptions[$key][$option] == ts('List of names')) {
-            $exportParams[$key] = '';
-          }
-          else {
-            $exportParams[$key] = $greetingOptions[$key][$option];
-          }
-        }
-      }
-    }
     $tableName = $this->getTemporaryTable();
     // check if any records are present based on if they have used shared address feature,
     // and not based on if city / state .. matches.
@@ -1997,7 +2011,7 @@ FROM      $tableName r1
 INNER JOIN civicrm_address adr ON r1.master_id   = adr.id
 INNER JOIN $tableName      r2  ON adr.contact_id = r2.civicrm_primary_id
 ORDER BY  r1.id";
-    $linkedMerge = $this->buildMasterCopyArray($sql, $exportParams, TRUE);
+    $linkedMerge = $this->buildMasterCopyArray($sql, TRUE);
 
     // find all the records that have the same street address BUT not in a household
     // require match on city and state as well
@@ -2024,7 +2038,7 @@ AND       ( r1.street_address != '' )
 AND       r2.id > r1.id
 ORDER BY  r1.id
 ";
-    $merge = $this->buildMasterCopyArray($sql, $exportParams);
+    $merge = $this->buildMasterCopyArray($sql);
 
     // unset ids from $merge already present in $linkedMerge
     foreach ($linkedMerge as $masterID => $values) {
@@ -2089,18 +2103,14 @@ WHERE  id IN ( $deleteIDString )
    *
    * @param string $parsedString
    * @param string $defaultGreeting
-   * @param bool $addressMergeGreetings
-   * @param string $greetingType
+   * @param string $greetingLabel
    *
    * @return mixed
    */
   public function trimNonTokensFromAddressString(
     &$parsedString, $defaultGreeting,
-    $addressMergeGreetings, $greetingType = 'postal_greeting'
+    $greetingLabel
   ) {
-    if (!empty($addressMergeGreetings[$greetingType])) {
-      $greetingLabel = $addressMergeGreetings[$greetingType];
-    }
     $greetingLabel = empty($greetingLabel) ? $defaultGreeting : $greetingLabel;
 
     $stringsToBeReplaced = preg_replace('/(\{[a-zA-Z._ ]+\})/', ';;', $greetingLabel);
@@ -2112,6 +2122,65 @@ WHERE  id IN ( $deleteIDString )
     $parsedString = str_replace($stringsToBeReplaced, "", $parsedString);
 
     return $parsedString;
+  }
+
+  /**
+   * Preview export output.
+   *
+   * @param int $limit
+   * @return array
+   */
+  public function getPreview($limit) {
+    $rows = [];
+    list($outputColumns, $metadata) = $this->getExportStructureArrays();
+    $query = $this->runQuery([], '');
+    CRM_Core_DAO::disableFullGroupByMode();
+    $result = CRM_Core_DAO::executeQuery($query[1] . ' LIMIT ' . (int) $limit);
+    CRM_Core_DAO::reenableFullGroupByMode();
+    while ($result->fetch()) {
+      $rows[] = $this->buildRow($query[0], $result, $outputColumns, $metadata, [], []);
+    }
+    return $rows;
+  }
+
+  /**
+   * Set the template strings to be used when merging two contacts with the same address.
+   *
+   * @param array $formValues
+   *   Values from first form. In this case we care about the keys
+   *   - postal_greeting
+   *   - postal_other
+   *   - address_greeting
+   *   - addressee_other
+   *
+   * @return mixed
+   */
+  protected function setGreetingStringsForSameAddressMerge($formValues) {
+    $greetingOptions = CRM_Export_Form_Select::getGreetingOptions();
+
+    if (!empty($greetingOptions)) {
+      // Greeting options is keyed by 'postal_greeting' or 'addressee'.
+      foreach ($greetingOptions as $key => $value) {
+        $option = CRM_Utils_Array::value($key, $formValues);
+        if ($option) {
+          if ($greetingOptions[$key][$option] == ts('Other')) {
+            $formValues[$key] = $formValues["{$key}_other"];
+          }
+          elseif ($greetingOptions[$key][$option] == ts('List of names')) {
+            $formValues[$key] = '';
+          }
+          else {
+            $formValues[$key] = $greetingOptions[$key][$option];
+          }
+        }
+      }
+    }
+    if (!empty($formValues['postal_greeting'])) {
+      $this->setPostalGreetingTemplate($formValues['postal_greeting']);
+    }
+    if (!empty($formValues['addressee'])) {
+      $this->setAddresseeGreetingTemplate($formValues['addressee']);
+    }
   }
 
 }

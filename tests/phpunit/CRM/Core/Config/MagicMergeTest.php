@@ -1,8 +1,9 @@
-{*
+<?php
+/*
  +--------------------------------------------------------------------+
  | CiviCRM version 5                                                  |
  +--------------------------------------------------------------------+
- | Copyright CiviCRM LLC (c) 2004-2018                                |
+ | Copyright CiviCRM LLC (c) 2004-2019                                |
  +--------------------------------------------------------------------+
  | This file is a part of CiviCRM.                                    |
  |                                                                    |
@@ -22,9 +23,52 @@
  | GNU Affero General Public License or the licensing of CiviCRM,     |
  | see the CiviCRM license FAQ at http://civicrm.org/licensing        |
  +--------------------------------------------------------------------+
-*}
-{* Wrapper around DatePickerRange TPL file *}
-<td {if $colspan} colspan="{$colspan}" {else} colspan="2" {/if} {if $class} class="{$class}" {/if}>
-  {assign var='hideRelativeLabel' value=$hideRelativeLabel|default:0}
-  {include file="CRM/Core/DatePickerRange.tpl" fieldName=$fieldName hideRelativeLabel=$hideRelativeLabel}
-</td>
+ */
+
+/**
+ *
+ * @package CiviCRM
+ * @copyright CiviCRM LLC (c) 2004-2019
+ * $Id: $
+ *
+ */
+
+/**
+ * Class CRM_Core_Config_MagicMergeTest
+ * @group headless
+ */
+class CRM_Core_Config_MagicMergeTest extends CiviUnitTestCase {
+
+  public function getOverrideExamples() {
+    return [
+      // Check examples of a few different types
+      ['configAndLogDir', '/tmp/zoo'],
+      ['maxAttachments', '112358'],
+      ['initialized', 'for sure'],
+      ['userFrameworkBaseURL', 'http://example.com/use/the/framework/luke'],
+      ['inCiviCRM', 'all the data'],
+      ['cleanURL', 'as clean as a url can be'],
+      ['defaultCurrencySymbol', ':)'],
+    ];
+  }
+
+  /**
+   * @param string $field
+   * @param mixed $tempValue
+   * @dataProvider getOverrideExamples
+   */
+  public function testTempOverride($field, $tempValue) {
+    $config = CRM_Core_Config::singleton();
+    $origValue = $config->{$field};
+
+    $config->{$field} = $tempValue;
+    $this->assertEquals($tempValue, $config->{$field});
+
+    $config = CRM_Core_Config::singleton();
+    $this->assertEquals($tempValue, $config->{$field});
+
+    $config = CRM_Core_Config::singleton(TRUE, TRUE);
+    $this->assertEquals($origValue, $config->{$field});
+  }
+
+}
