@@ -1,0 +1,291 @@
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Activity/Selector/Activity.php:221:21 - Function ts does not exist
+          'name' => [97;41mts('View')[0m,
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Activity/Selector/Activity.php:224:22 - Function ts does not exist
+          'title' => [97;41mts('View Activity')[0m,
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Activity/Selector/Activity.php:302:25 - Function ts does not exist
+    $params['status'] = [97;41mts('Activities %%StatusMessage%%')[0m;
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Activity/Selector/Activity.php:324:22 - Function ts does not exist
+      $csvHeaders = [[97;41mts('Activity Type')[0m, ts('Description'), ts('Activity Date')];
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Activity/Selector/Activity.php:324:43 - Function ts does not exist
+      $csvHeaders = [ts('Activity Type'), [97;41mts('Description')[0m, ts('Activity Date')];
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Activity/Selector/Activity.php:324:62 - Function ts does not exist
+      $csvHeaders = [ts('Activity Type'), ts('Description'), [97;41mts('Activity Date')[0m];
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Activity/Selector/Activity.php:504:12 - Function ts does not exist
+    return [97;41mts('CiviCRM Activity')[0m;
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Activity/Selector/Activity.php:517:21 - Function ts does not exist
+          'name' => [97;41mts('Type')[0m,
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Activity/Selector/Activity.php:522:21 - Function ts does not exist
+          'name' => [97;41mts('Subject')[0m,
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Activity/Selector/Activity.php:527:21 - Function ts does not exist
+          'name' => [97;41mts('Added By')[0m,
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Activity/Selector/Activity.php:531:20 - Function ts does not exist
+        ['name' => [97;41mts('With')[0m],
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Activity/Selector/Activity.php:532:20 - Function ts does not exist
+        ['name' => [97;41mts('Assigned')[0m],
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Activity/Selector/Activity.php:534:21 - Function ts does not exist
+          'name' => [97;41mts('Date')[0m,
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Activity/Selector/Activity.php:539:21 - Function ts does not exist
+          'name' => [97;41mts('Status')[0m,
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Activity/Selector/Activity.php:543:20 - Function ts does not exist
+        ['desc' => [97;41mts('Actions')[0m],
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Contact/Form/Search/Custom/Base.php:212:31 - Function ts does not exist
+        CRM_Core_Error::fatal([97;41mts('Could not find \'%1\' string in SQL clause.',
+          [1 => $string]
+        )[0m);
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Contact/Form/Search/Custom/Base.php:220:31 - Function ts does not exist
+        CRM_Core_Error::fatal([97;41mts('Found illegal \'%1\' string in SQL clause.',
+          [1 => $string]
+        )[0m);
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Contact/Form/Search/Custom/Base.php:256:34 - Function ts does not exist
+      CRM_Utils_System::setTitle([97;41mts('Search')[0m);
+
+
+[0;31mERROR[0m: InvalidScalarArgument - CRM/Contribute/BAO/Query.php:257:20 - Argument 1 of strpos expects string, string(contribution_campaign_id)|bool provided
+      case (strpos([97;41m$name[0m, '_amount') !== FALSE):
+
+
+[0;31mERROR[0m: InvalidScalarArgument - CRM/Contribute/BAO/Query.php:271:52 - Argument 3 of str_replace expects array<array-key, mixed>|string, string(contribution_campaign_id)|string(payment_instrument_id)|string(invoice_number)|string(invoice_id)|string(financial_type_id)|string(contribution_trxn_id)|string(contribution_status_id)|string(contribution_source)|string(contribution_payment_instrument_id)|string(contribution_page_id)|string(contribution_id)|string(contribution_currency_type)|string(contribution_currency)|string(contribution_contact_id)|string(contribution_check_number)|bool provided
+          $name = str_replace('contribution_', '', [97;41m$name[0m);
+
+
+[0;31mERROR[0m: InvalidScalarArgument - CRM/Contribute/BAO/Query.php:281:110 - Argument 2 of CRM_Contact_BAO_Query::buildqillforfieldvalue expects string, bool|string provided
+        list($op, $value) = CRM_Contact_BAO_Query::buildQillForFieldValue('CRM_Contribute_DAO_Contribution', [97;41m$name[0m, $value, $op, $pseudoExtraParam);
+
+
+[0;31mERROR[0m: PossiblyUndefinedArrayOffset - CRM/Contribute/BAO/Query.php:283:61 - Possibly undefined array key $fields[$qillName]
+          $query->_qill[$grouping][] = ts('%1 %2 %3', [1 => [97;41m$fields[$qillName][0m['title'], 2 => $op, 3 => $value]);
+
+
+[0;31mERROR[0m: PossiblyInvalidCast - CRM/Contribute/BAO/Query.php:431:67 - array<array-key, mixed> cannot be cast to string
+        $query->_where[$grouping][] = " civicrm_membership.id $op [97;41m$value[0m";
+
+
+[0;31mERROR[0m: PossiblyInvalidCast - CRM/Contribute/BAO/Query.php:437:68 - array<array-key, mixed> cannot be cast to string
+        $query->_where[$grouping][] = " civicrm_participant.id $op [97;41m$value[0m";
+
+
+[0;31mERROR[0m: PossiblyInvalidCast - CRM/Contribute/BAO/Query.php:442:92 - array<array-key, mixed> cannot be cast to string
+        $query->_where[$grouping][] = " civicrm_contribution_soft.pcp_display_in_roll $op '[97;41m$value[0m'";
+
+
+[0;31mERROR[0m: PossiblyInvalidCast - CRM/Contribute/BAO/Query.php:471:79 - array<array-key, mixed> cannot be cast to string
+        $query->_where[$grouping][] = " civicrm_financial_trxn.is_payment $op [97;41m$value[0m";
+
+
+[0;31mERROR[0m: PossiblyInvalidArgument - CRM/Contribute/BAO/Query.php:513:101 - Argument 3 of CRM_Contact_BAO_Query::buildclause expects string|null, possibly different type array<array-key, mixed>|string provided
+        $query->_where[$grouping][] = CRM_Contact_BAO_Query::buildClause($whereTable['where'], $op, [97;41m$value[0m, $dataType);
+
+
+[0;31mERROR[0m: MissingDependency - CRM/Contribute/BAO/Query.php:796:59 - CRM_Core_DAO depends on class or interface db_dataobject that does not exist
+      \Civi::$statics[__CLASS__]['has_products'] = (bool) [97;41mCRM_Core_DAO[0m::singleValueQuery('SELECT id FROM civicrm_contribution_product LIMIT 1');
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Core/IDS.php:294:12 - Function ts does not exist
+    $msg = [97;41mts('There is a validation error with your HTML input. Your activity is a bit suspicious, hence aborting')[0m;
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Core/Payment/AuthorizeNetIPN.php:195:18 - Function ts does not exist
+      $message = [97;41mts("Subscription payment failed - %1", [1 => htmlspecialchars($input['response_reason_text'])])[0m;
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Core/Payment/Dummy.php:65:29 - Function ts does not exist
+    $this->_processorName = [97;41mts('Dummy Processor')[0m;
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Core/Payment/Dummy.php:96:35 - Function ts does not exist
+      $error = new CRM_Core_Error([97;41mts('transaction failed')[0m);
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Core/Payment/Elavon.php:53:29 - Function ts does not exist
+    $this->_processorName = [97;41mts('Elavon')[0m;
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Core/Payment/Elavon.php:123:29 - Function ts does not exist
+      CRM_Core_Error::fatal([97;41mts('Elavon - recurring payments not implemented')[0m);
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Core/Payment/Elavon.php:127:29 - Function ts does not exist
+      CRM_Core_Error::fatal([97;41mts('Elavon / Nova Virtual Merchant Gateway requires curl with SSL support')[0m);
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Core/Payment/Elavon.php:293:27 - Function ts does not exist
+      $errorMsg[] = ' ' . [97;41mts('ssl_merchant_id is not set for this payment processor')[0m;
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Core/Payment/Elavon.php:297:27 - Function ts does not exist
+      $errorMsg[] = ' ' . [97;41mts('URL is not set for this payment processor')[0m;
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Core/Payment/PaymentExpressIPN.php:321:35 - Function ts does not exist
+            CRM_Core_Error::fatal([97;41mts("DPS error: Unable to parse XML response from DPS.", [1 => $valid])[0m);
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Core/Payment/PaymentExpressIPN.php:337:31 - Function ts does not exist
+        CRM_Core_Error::fatal([97;41mts('Unable to establish connection to the payment gateway to verify transaction response.')[0m);
+
+
+[0;31mERROR[0m: InvalidScalarArgument - CRM/Export/BAO/ExportProcessor.php:1687:94 - Argument 1 of CRM_Utils_Array::value expects string, int(1) provided
+                $this->addOutputSpecification($type[0], $key, $ltype, CRM_Utils_Array::value([97;41m1[0m, $type));
+
+
+[0;31mERROR[0m: InvalidScalarArgument - CRM/Export/BAO/ExportProcessor.php:1704:107 - Argument 1 of CRM_Utils_Array::value expects string, int(1) provided
+            $this->addOutputSpecification($actualDBFieldName, NULL, $locationType, CRM_Utils_Array::value([97;41m1[0m, $type));
+
+
+[0;31mERROR[0m: MissingDependency - CRM/Export/BAO/ExportProcessor.php:1843:12 - CRM_Export_Form_Select depends on class or interface html_quickform_page that does not exist
+      case [97;41mCRM_Export_Form_Select[0m::EVENT_EXPORT:
+
+
+[0;31mERROR[0m: MissingDependency - CRM/Export/BAO/ExportProcessor.php:1847:12 - CRM_Export_Form_Select depends on class or interface html_quickform_page that does not exist
+      case [97;41mCRM_Export_Form_Select[0m::MEMBER_EXPORT:
+
+
+[0;31mERROR[0m: MissingDependency - CRM/Export/BAO/ExportProcessor.php:2074:7 - CRM_Core_DAO depends on class or interface db_dataobject that does not exist
+      [97;41mCRM_Core_DAO[0m::executeQuery($sql, $params);
+
+
+[0;31mERROR[0m: MissingDependency - CRM/Export/BAO/ExportProcessor.php:2083:7 - CRM_Core_DAO depends on class or interface db_dataobject that does not exist
+      [97;41mCRM_Core_DAO[0m::executeQuery($sql);
+
+
+[0;31mERROR[0m: MissingDependency - CRM/Export/BAO/ExportProcessor.php:2137:5 - CRM_Core_DAO depends on class or interface db_dataobject that does not exist
+    [97;41mCRM_Core_DAO[0m::disableFullGroupByMode();
+
+
+[0;31mERROR[0m: InvalidReturnType - CRM/Export/BAO/ExportProcessor.php:2156:14 - No return statements were found for method CRM_Export_BAO_ExportProcessor::setGreetingStringsForSameAddressMerge but return type 'mixed' was expected
+   * @return [97;41mmixed[0m
+
+
+[0;31mERROR[0m: MissingDependency - CRM/Export/BAO/ExportProcessor.php:2159:24 - CRM_Export_Form_Select depends on class or interface html_quickform_page that does not exist
+    $greetingOptions = [97;41mCRM_Export_Form_Select[0m::getGreetingOptions();
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Group/Page/Group.php:68:12 - Function ts does not exist
+    return [97;41mts('Edit Group')[0m;
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Logging/Schema.php:555:35 - Function ts does not exist
+      'logging/contact/detail' => [97;41mts('Logging Details')[0m,
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Logging/Schema.php:556:36 - Function ts does not exist
+      'logging/contact/summary' => [97;41mts('Contact Logging Report (Summary)')[0m,
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Logging/Schema.php:557:38 - Function ts does not exist
+      'logging/contribute/detail' => [97;41mts('Contribution Logging Report (Detail)')[0m,
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Logging/Schema.php:558:39 - Function ts does not exist
+      'logging/contribute/summary' => [97;41mts('Contribution Logging Report (Summary)')[0m,
+
+
+[0;31mERROR[0m: MissingDependency - CRM/Mailing/Selector/Browse.php:454:17 - CRM_Mailing_BAO_Mailing depends on class or interface db_dataobject that does not exist
+        $hash = [97;41mCRM_Mailing_BAO_Mailing[0m::getMailingHash($row['id']);
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Member/Page/MembershipStatus.php:70:21 - Function ts does not exist
+          'name' => [97;41mts('Edit')[0m,
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Member/Page/MembershipStatus.php:73:22 - Function ts does not exist
+          'title' => [97;41mts('Edit Membership Status')[0m,
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Member/Page/MembershipStatus.php:76:21 - Function ts does not exist
+          'name' => [97;41mts('Disable')[0m,
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Member/Page/MembershipStatus.php:78:22 - Function ts does not exist
+          'title' => [97;41mts('Disable Membership Status')[0m,
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Member/Page/MembershipStatus.php:81:21 - Function ts does not exist
+          'name' => [97;41mts('Enable')[0m,
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Member/Page/MembershipStatus.php:83:22 - Function ts does not exist
+          'title' => [97;41mts('Enable Membership Status')[0m,
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Member/Page/MembershipStatus.php:86:21 - Function ts does not exist
+          'name' => [97;41mts('Delete')[0m,
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Member/Page/MembershipStatus.php:89:22 - Function ts does not exist
+          'title' => [97;41mts('Delete Membership Status')[0m,
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Member/Page/MembershipStatus.php:126:11 - Function ts does not exist
+          [97;41mts('more')[0m,
+
+
+[0;31mERROR[0m: UndefinedFunction - CRM/Upgrade/Incremental/php/FiveSeventeen.php:93:20 - Function ts does not exist
+    $this->addTask([97;41mts('Upgrade DB to %1: SQL', array(1 => $rev))[0m, 'runSql', $rev);
+
+
+[0;31mERROR[0m: MissingDependency - CRM/Utils/System.php:1455:5 - CRM_ACL_BAO_Cache depends on class or interface db_dataobject that does not exist
+    [97;41mCRM_ACL_BAO_Cache[0m::resetCache();
+
+
+[0;31mERROR[0m: UndefinedFunction - tests/extensions/test.extension.manager.searchtest/main.php:73:7 - Function ts does not exist
+      [97;41mts('Contact ID')[0m => 'contact_id',
+
+
+[0;31mERROR[0m: UndefinedFunction - tests/extensions/test.extension.manager.searchtest/main.php:74:7 - Function ts does not exist
+      [97;41mts('Contact Type')[0m => 'contact_type',
+
+
+[0;31mERROR[0m: UndefinedFunction - tests/extensions/test.extension.manager.searchtest/main.php:75:7 - Function ts does not exist
+      [97;41mts('Name')[0m => 'sort_name',
+
+
+[0;31mERROR[0m: UndefinedFunction - tests/extensions/test.extension.manager.searchtest/main.php:76:7 - Function ts does not exist
+      [97;41mts('State')[0m => 'state_province',
+
+
+[0;31mERROR[0m: MissingDependency - tests/phpunit/CRM/Core/Config/MagicMergeTest.php:40:46 - CiviUnitTestCase depends on class or interface phpunit\framework\testcase that does not exist
+class CRM_Core_Config_MagicMergeTest extends [97;41mCiviUnitTestCase[0m {
+
+
+------------------------------
+[0;31m70 errors[0m found
+------------------------------
+
+Checks took 155.10 seconds and used 1,607.425MB of memory
+Psalm was able to infer types for 78.2617% of the codebase
